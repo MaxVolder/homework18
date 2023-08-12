@@ -13,14 +13,17 @@ class Timer extends React.Component {
       timeLeft: Number(time),
       step: Number(step),
       autostart: autostart,
+      isPaused: !autostart,
     };
+
     this.startTimer = this.startTimer.bind(this);
     this.pauseTimer = this.pauseTimer.bind(this);
+    this.resumeTimer = this.resumeTimer.bind(this); 
     this.tick = this.tick.bind(this);
   }
 
   tick() {
-    if (this.state.timeLeft === 0) {
+    if (this.state.timeLeft === 0 || this.state.isPaused) {
       clearInterval(this.Interval);
       return;
     }
@@ -28,6 +31,7 @@ class Timer extends React.Component {
       timeLeft: this.state.timeLeft - this.state.step,
     });
   }
+
   componentDidMount() {
     if (this.state.autostart) {
       this.startTimer();
@@ -35,19 +39,42 @@ class Timer extends React.Component {
   }
 
   startTimer() {
-    this.Interval = setInterval(() => {
-      this.tick();
-    }, this.state.step);
+    if (!this.state.isPaused) {
+      this.Interval = setInterval(() => {
+        this.tick();
+        if (this.state.timeLeft === this.props.time) {
+          this.props.onTimeStart(this.state.timeLeft);
+        }
+      }, this.state.step);
+    }
+    this.setState({
+      isPaused: false,
+    });
+    this.props.onTimeStart(this.state.timeLeft); 
   }
+  
+
   pauseTimer() {
     clearInterval(this.Interval);
+    this.setState({
+      isPaused: true,
+    });
+    this.props.onTimePause(this.state.timeLeft);
   }
+
+  resumeTimer() {
+    this.startTimer(); 
+    this.setState({
+      isPaused: false,
+    });
+  }
+
   componentWillUnmount() {
     clearInterval(this.Interval);
   }
 
   render() {
-    const circleSize = 200; // Set the desired size of the circle
+    const circleSize = 200;
 
     return (
       <div className="timer-container">
@@ -63,8 +90,12 @@ class Timer extends React.Component {
           />
         </div>
         <div className="buttons">
+          {this.state.isPaused ? (
+            <button onClick={this.resumeTimer}>RESUME</button> 
+          ) : (
+            <button onClick={this.pauseTimer}>PAUSE</button>
+          )}
           <button onClick={this.startTimer}>START</button>
-          <button onClick={this.pauseTimer}>PAUSE</button>
         </div>
       </div>
     );
