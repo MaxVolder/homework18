@@ -11,7 +11,7 @@ class Timer extends React.Component {
 
     this.state = {
       timeLeft: Number(time),
-      step: Number(step),
+      step: Number(step)/10,
       autostart: autostart,
       isPaused: !autostart,
     };
